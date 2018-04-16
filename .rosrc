@@ -1,49 +1,72 @@
 ros-env() {
- WORK_DIR=$HOME/catkin_ws
- if [ ! -d $WORK_DIR ]; then
-  echo "Don't exist yet"
- fi
- DIST_DIR=$HOME/.catkin_ws_$1
- if [ ! -d $DIST_DIR ]; then
-  echo "Dont exist this is a problem"
- fi
- #echo "Work dir is $WORK_DIR"
- #echo "Distrobution dir $DIST_DIR"
- if [ -d /opt/ros/$1 ]; then
- export LD_LIBRARY_PATH="/usr/oldlib:${LD_LIBRARY_PATH}"
- source /opt/ros/$1/setup.bash
- if [ -d $WORK_DIR ];then
-  echo "catkin_ws existed deleting the directory"
-  rm -f $WORK_DIR
- fi
- if [ -d $DIST_DIR ];then
- echo "Creating symlink"
- ln -s $DIST_DIR/ $WORK_DIR
- echo "Done"
- else
-  echo "Colden't create symlink =("
- fi 
- if [ -d $WORK_DIR ];then
-  echo "initialisisg ros $1"
-  if [ -e $WORK_DIR/devel/setup.bash ];then
-   source $WORK_DIR/devel/setup.bash
-  else
-   echo "$WORK_DIR/devel/setup.bash did not exist"
-   echo "Plece init the work directory"
-  fi
- else
-  echo "Errror catkin_ws did not exist" 
- fi
- #source /usr/share/gazebo/setup.sh
- #alias catkin_make="catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python2"
- 
- PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
- export PS1="[ROS-$1]${PS1}"
+WORK_DIR=$HOME/catkin_ws
+DIST_DIR=$HOME/.catkin_ws_$1
+if [ ! -d $WORK_DIR ]; then
+   echo "Don't exist yet"
+fi
+if [ ! -d $DIST_DIR ]; then
+   echo "Don't exist this is a problem"
+fi
+echo "Work dir is $WORK_DIR"
+echo "Distribution dir $DIST_DIR"
+if [ -d /opt/ros/$1 ]; then
+   export LD_LIBRARY_PATH="/usr/oldlib:${LD_LIBRARY_PATH}"
+   source /opt/ros/$1/setup.bash
+
+   # Check if the work dir is of the right distribution.
+   if [ -d $WORK_DIR ]; then
+      if [ 1 -eq $(ls /opt/ros/ | grep lunar | wc -l) ]; then
+         if [ 1 -ne $(readlink $WORK_DIR | grep $1 | wc -l) ]; then
+            echo "catkin_ws was of the wrong distribution deleting the directory"
+            rm -f $WORK_DIR
+         else
+            echo "Catkin was of the right distribution"
+         fi
+      fi
+   fi
+
+   # Check if the distribution workspace exist or not
+   # i.e .catkin_ws_lunar
+   if [ ! -d $DIST_DIR ]; then
+      if [ -d /opt/ros/$1 ]; then
+         echo "The workspace $DIST_DIR did not exist creating it now"
+         mkdir -p $DIST_DIR
+      else
+         echo "Not a valid distribution on this system"
+      fi
+   fi
+
+   # Create the symlink
+   if [ -d $DIST_DIR ];then
+      echo "Creating symlink"
+      ln -s $DIST_DIR/ $WORK_DIR
+      echo "Done"
+   else
+      echo "Couldn't create symlink =("
+   fi
+
+   # Start soursing the workdir
+   if [ -d $WORK_DIR ];then
+      echo "initialising ROS $1"
+      if [ -e $WORK_DIR/devel/setup.bash ];then
+         source $WORK_DIR/devel/setup.bash
+      else
+         echo "$WORK_DIR/devel/setup.bash did not exist"
+         if [ -d $WORK_DIR ]; then
+            echo "$WORK_DIR isn't initialised plece run ros-env again after it it done"
+            mkdir -p $WORK_DIR/src/
+         fi
+      fi
+   fi
+   alias catkin_make="catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python2"
 else
- echo "File did not exist or you wrote something wrong"
- echo "Pleace state lurar or kinetik"
- echo "i.e"
- echo "$ ros-env lunar"
+   #source /usr/share/gazebo/setup.sh
+   #PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+   #export PS1="[ROS-$1]${PS1}"
+   echo "File did not exist or you wrote something wrong"
+   echo "Pleace state lurar or kinetik"
+   echo "i.e"
+   echo "$ ros-env lunar"
 fi
 }
 
