@@ -1,26 +1,38 @@
+###########################################
+# Created by Magnus Sörensen              #
+# https://github.com/byteofsoren/ros-env  #
+###########################################
+
 ros-env() {
 WORK_DIR=$HOME/catkin_ws
 DIST_DIR=$HOME/.catkin_ws_$1
-if [ ! -d $WORK_DIR ]; then
-   echo "Don't exist yet"
+ROS_ENVIORMENT=bash
+# Debug levels are rated from 0 to 5 depending on how deap
+# output you want, where 0 is all and 5 is none.
+DEBUG_LEVEL=5
+if [ 5 -eq $DEBUG_LEVEL ]; then
+   # no messages are sent to the terminal
+   OUT5=/dev/null
+else
+   # In this part have to be implemented if you want any more levels the 5.
+   OUT5=$(tty)
 fi
-if [ ! -d $DIST_DIR ]; then
-   echo "Don't exist this is a problem"
-fi
-echo "Work dir is $WORK_DIR"
-echo "Distribution dir $DIST_DIR"
+
+echo "Work dir is $WORK_DIR" > $OUT5
+echo "Distribution dir $DIST_DIR" > $OUT5
+# Check if the enviorment is part of the operating system
 if [ -d /opt/ros/$1 ]; then
    export LD_LIBRARY_PATH="/usr/oldlib:${LD_LIBRARY_PATH}"
-   source /opt/ros/$1/setup.bash
+   source /opt/ros/$1/setup.$ROS_ENVIORMENT
 
    # Check if the work dir is of the right distribution.
    if [ -d $WORK_DIR ]; then
       if [ 1 -eq $(ls /opt/ros/ | grep lunar | wc -l) ]; then
          if [ 1 -ne $(readlink $WORK_DIR | grep $1 | wc -l) ]; then
-            echo "catkin_ws was of the wrong distribution deleting the directory"
+            echo "catkin_ws was of the wrong distribution deleting the directory" > $OUT5
             rm -f $WORK_DIR
          else
-            echo "Catkin was of the right distribution"
+            echo "Catkin was of the right distribution" > $OUT5
          fi
       fi
    fi
@@ -28,47 +40,51 @@ if [ -d /opt/ros/$1 ]; then
    # Check if the distribution workspace exist or not
    # i.e .catkin_ws_lunar
    if [ ! -d $DIST_DIR ]; then
-      if [ -d /opt/ros/$1 ]; then
-         echo "The workspace $DIST_DIR did not exist creating it now"
+         echo "The workspace $DIST_DIR did not exist creating it now" > $OUT5
          mkdir -p $DIST_DIR
-      else
-         echo "Not a valid distribution on this system"
-      fi
    fi
 
    # Create the symlink
-   if [ -d $DIST_DIR ];then
-      echo "Creating symlink"
+   if [ ! -d $WORK_DIR ]; then
+      echo "Creating symlink" > $OUT5
       ln -s $DIST_DIR/ $WORK_DIR
-      echo "Done"
-   else
-      echo "Couldn't create symlink =("
-   fi
-
-   # Start soursing the workdir
-   if [ -d $WORK_DIR ];then
-      echo "initialising ROS $1"
-      if [ -e $WORK_DIR/devel/setup.bash ];then
-         source $WORK_DIR/devel/setup.bash
-      else
-         echo "$WORK_DIR/devel/setup.bash did not exist"
-         if [ -d $WORK_DIR ]; then
-            echo "$WORK_DIR isn't initialised plece run ros-env again after it it done"
-            mkdir -p $WORK_DIR/src/
-         fi
+      if [ 0 -ne $? ]; then
+         echo "Couldn't crate symlink this is bad" > $OUT5
       fi
    fi
+
+   # On archlinux python 3 is the standard interface for python but ros uses
+   # python 2.7 so create a alias for catkin_make
    if [ 3 -eq $(python --version | awk  '{print $2}' | awk -F "." '{print $1}') ]; then
+      echo "Wrong python version aliasing catkin_make" > $OUT5
       alias catkin_make="catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python2"
+   fi
+
+   # Start sourcing the workdir
+   if [ -d $WORK_DIR ]; then
+      echo "initialising ROS $1" > $OUT5
+      # If the devel/setpu.bash don't exist init the work dir
+      if [ ! -e $WORK_DIR/devel/setup.$ROS_ENVIORMENT ]; then
+         echo "$WORK_DIR/devel/setup.bash did not exist" > $OUT5
+         mkdir -p $WORK_DIR/src/
+         OLDDIR=$(pwd)
+         cd $WORK_DIR
+         catkin_make
+         cd $OLDDIR
+      fi
+      # Source the previously initialised workdir.
+      if [ -e $WORK_DIR/devel/setup.$ROS_ENVIORMENT ]; then
+         source $WORK_DIR/devel/setup.$ROS_ENVIORMENT
+      fi
    fi
 else
    #source /usr/share/gazebo/setup.sh
    #PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
    #export PS1="[ROS-$1]${PS1}"
-   echo "File did not exist or you wrote something wrong"
-   echo "Pleace state lurar or kinetik"
-   echo "i.e"
-   echo "$ ros-env lunar"
+   echo "File did not exist or you wrote something wrong" > $OUT5
+   echo "Please state lunar or kinetic" > $OUT5
+   echo "i.e" > $OUT5
+   echo "$ ros-env lunar" > $OUT5
 fi
 }
 
