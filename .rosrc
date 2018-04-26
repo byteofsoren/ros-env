@@ -77,7 +77,8 @@ ros-env() {
 
       # On archlinux python 3 is the standard interface for python but ros uses
       # python 2.7 so create a alias for catkin_make
-      if [ 3 -eq $(python --version | awk  '{print $2}' | awk -F "." '{print $1}') ]; then
+      ##if [ 3 -eq $(python --version | awk  '{print $2}' | awk -F "." '{print $1}') ]; then
+      if [ 3 -eq $(python2 --version 2>&1 | sed -e 's/Python //g' | awk -F "." '{print $1}') ]; then
          echo "Wrong python version aliasing catkin_make" > $MESSAGES
          alias catkin_make="catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python2"
       fi
