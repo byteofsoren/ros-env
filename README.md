@@ -36,10 +36,10 @@ If PKGx is left empty `$ catkin_make` compiles all packages.
 
 
 ## Version history
-2018-04-26:001\\
+2018-04-26:001\ 
    Fixed a problem with python 2.7 that din't print out its version number on
    the stdout terminal and the row to add ros-env to the bash rc.
-2018-04-17:001\\
+2018-04-17:001\ 
    Fixed a bug in the script that made 2 if statmest un executible.
    Added alpa suport for debug levels by using `$DEBUG_LEVEL=5`
    Removed depricated if statments.
