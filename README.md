@@ -36,7 +36,7 @@ If PKGx is left empty `$ catkin_make` compiles all packages.
 
 
 ## Version history
-2018-04-26:001 <br />
+2018-04-26:002 <br />
    Fixed a problem with python 2.7 that din't print out its version number on
    the stdout terminal and the row to add ros-env to the bash rc.
    <br />
