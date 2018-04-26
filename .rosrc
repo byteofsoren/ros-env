@@ -3,6 +3,25 @@
 # https://github.com/byteofsoren/ros-env  #
 ###########################################
 
+function catshit() {
+   if [ -d ~/catkin_ws ];then
+      OLD=$(pwd)
+      cd ~/catkin_ws
+      if [ $# -eq 0 ]; then
+         catkin_make
+      else
+         for PACKAGE in "$@"
+         do
+            catkin_make -DCATKIN_WHITELIST_PACKAGES="$PACKAGE"
+         done
+      fi
+      cd $OLD
+   else
+      echo "run ros-env [distro]"
+   fi
+}
+
+
 ros-env() {
    WORK_DIR=$HOME/catkin_ws
    DIST_DIR=$HOME/.catkin_ws_$1
