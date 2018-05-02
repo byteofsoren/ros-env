@@ -36,7 +36,7 @@ ros-env() {
    ROS_ENVIORMENT=bash
    # Debug levels are rated from 0 to 5 depending on how deap
    # output you want, where 0 is all and 5 is none.
-   DEBUG_LEVEL=2
+   DEBUG_LEVEL=5
    MESSAGES=/dev/null
    WARNINGS=/dev/null
    ERROR2=/dev/null
