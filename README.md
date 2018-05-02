@@ -36,11 +36,16 @@ If PKGx is left empty `$ catkin_make` compiles all packages.
 
 
 ## Version history
+2018-05-02:003 <br />
+   Fixed a typo that made a if statement always true.
+   Forced `ROS_DISTRO` environmental variable to be set to the desired distro.
+   The `catshit` command was given a feature to discover if the target is a real package in `catkin_ws/src/`.
+   <br />
 2018-04-26:002 <br />
-   Fixed a problem with python 2.7 that din't print out its version number on
+   Fixed a problem with python 2.7 that didn't print out its version number on
    the stdout terminal and the row to add ros-env to the bash rc.
    <br />
 2018-04-17:001 <br />
-   Fixed a bug in the script that made 2 if statmest un executible.
-   Added alpa suport for debug levels by using `$DEBUG_LEVEL=5`
-   Removed depricated if statments.
+   Fixed a bug in the script that made 2 if statement un executable.
+   Added alpha support for debug levels by using `$DEBUG_LEVEL=5`
+   Removed deprecated if statement.

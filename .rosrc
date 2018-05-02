@@ -2,6 +2,9 @@
 # Created by Magnus Sörensen              #
 # https://github.com/byteofsoren/ros-env  #
 ###########################################
+# On archlinux python 3 is the standard interface for python but ros uses
+# python 2.7 so create a alias for catkin_make
+##if [ 3 -eq $(python --version | awk  '{print $2}' | awk -F "." '{print $1}') ]; then
 
 function catshit() {
    if [ -d ~/catkin_ws ];then
@@ -12,7 +15,11 @@ function catshit() {
       else
          for PACKAGE in "$@"
          do
-            catkin_make -DCATKIN_WHITELIST_PACKAGES="$PACKAGE"
+            if [ -d ~/catkin_ws/src/$PACKAGE ]; then
+               catkin_make -DCATKIN_WHITELIST_PACKAGES="$PACKAGE"
+            else
+               echo "package $PACKAGE did not exist in catkin_ws"
+            fi
          done
       fi
       cd $OLD
@@ -29,7 +36,7 @@ ros-env() {
    ROS_ENVIORMENT=bash
    # Debug levels are rated from 0 to 5 depending on how deap
    # output you want, where 0 is all and 5 is none.
-   DEBUG_LEVEL=4
+   DEBUG_LEVEL=2
    MESSAGES=/dev/null
    WARNINGS=/dev/null
    ERROR2=/dev/null
@@ -50,6 +57,10 @@ ros-env() {
       if [ $DEBUG_LEVEL -lt 2 ]; then
          ERROR1=$(tty)
       fi
+   fi
+   if [ 3 -eq $(python --version 2>&1 | sed -e 's/Python //g' | awk -F "." '{print $1}') ]; then
+      echo "Wrong python version aliasing catkin_make" > $MESSAGES
+      alias catkin_make="catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python2"
    fi
 
    echo "Work dir is $WORK_DIR" > $MESSAGES
@@ -94,13 +105,6 @@ ros-env() {
          fi
       fi
 
-      # On archlinux python 3 is the standard interface for python but ros uses
-      # python 2.7 so create a alias for catkin_make
-      ##if [ 3 -eq $(python --version | awk  '{print $2}' | awk -F "." '{print $1}') ]; then
-      if [ 3 -eq $(python2 --version 2>&1 | sed -e 's/Python //g' | awk -F "." '{print $1}') ]; then
-         echo "Wrong python version aliasing catkin_make" > $MESSAGES
-         alias catkin_make="catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python2"
-      fi
 
       # Start sourcing the workdir
       if [ -d $WORK_DIR ]; then
@@ -130,9 +134,8 @@ ros-env() {
             echo "$WORK_DIR/devel/setup.$ROS_ENVIORMENT  did not exists" > $WARNINGS
          fi
       fi
+      ROS_DISTRO=$1
       printenv | grep ROS > $MESSAGES
-
-
    else
       #source /usr/share/gazebo/setup.sh
       #PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
